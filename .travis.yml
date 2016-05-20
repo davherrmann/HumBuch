@@ -1,4 +1,12 @@
 language: java
+
+env:
+  - COVERALLS_SERVICE_NAME=travis-ci
+
+before_install:
+  - sudo rm /etc/apt/sources.list.d/git-ppa-source.list
+  - sudo apt-get remove git && sudo apt-get remove git-man && sudo apt-get install git-man && sudo apt-get install git
+
 deploy:
   provider: openshift
   user: davherrmann@googlemail.com
@@ -8,4 +16,7 @@ deploy:
   domain: davherrmann
   on:
     repo: HumBuch/HumBuch
-    branch: develop
+    branch: master
+
+after_success:
+  - mvn clean test jacoco:report coveralls:jacoco

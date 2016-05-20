@@ -12,11 +12,11 @@ import com.google.inject.Inject;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
-import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ComponentContainerViewDisplay;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -26,7 +26,6 @@ import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 
 import de.davherrmann.guice.vaadin.ScopedUI;
 import de.davherrmann.mvvm.BasicState;
@@ -38,10 +37,23 @@ import de.dhbw.humbuch.event.MessageEvent;
 import de.dhbw.humbuch.util.ResourceLoader;
 import de.dhbw.humbuch.view.components.ConfirmDialog;
 import de.dhbw.humbuch.view.components.Header;
+import de.dhbw.humbuch.view.components.PrintingComponent;
+import de.dhbw.humbuch.view.components.PrintingComponent.MIMEType;
 import de.dhbw.humbuch.view.components.Sidebar;
 import de.dhbw.humbuch.viewmodel.LoginViewModel;
 import de.dhbw.humbuch.viewmodel.LoginViewModel.IsLoggedIn;
 
+/**
+ * The main UI class responsible for building the main layout and providing a
+ * {@link Navigator} for navigating through {@link View}s. Additionally
+ * {@link ConfirmEvent}s and {@link MessageEvent}s are handled.
+ * 
+ * @author Johannes Idelhauser
+ * @author Henning Muszynski
+ * @author David Herrmann
+ * @author David Vitt
+ * @author Martin Junker
+ */
 @Theme("humbuch")
 @SuppressWarnings("serial")
 @Widgetset("com.vaadin.DefaultWidgetSet")
@@ -114,7 +126,6 @@ public class MainUI extends ScopedUI {
 
 		navigator.setErrorView(errorView);
 
-		// TODO: Hack! Check how to save String in enums
 		navigator.addView("", lendingView);
 		navigator.addView(LOGIN_VIEW, loginView);
 		navigator.addView(BOOK_MANAGEMENT_VIEW, bookManagementView);
@@ -177,6 +188,9 @@ public class MainUI extends ScopedUI {
 		setContent(root);
 	}
 
+	/**
+	 * Attaches all listeners to the components.
+	 */
 	private void attachListener() {
 
 		/**
@@ -209,8 +223,10 @@ public class MainUI extends ScopedUI {
 				if (isLoggedIn.get()) {
 					View newView = event.getNewView();
 					if (newView instanceof ViewInformation) {
-						panelContent.setCaption(((ViewInformation) newView)
+						ViewInformation view = (ViewInformation) newView;
+						panelContent.setCaption(((ViewInformation) view)
 								.getTitle());
+						sidebar.changeMenuBarSelection(event.getViewName());
 					} else {
 						LOG.warn("New View does not implement ViewInformation interface."
 								+ " Could not set caption of panel correctly.");
@@ -239,40 +255,18 @@ public class MainUI extends ScopedUI {
 
 		});
 
+		/**
+		 * Adds the help HTML to the help button.
+		 */
 		header.getHelpButton().addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				Window window = createHelpWindow(new ResourceLoader("help/"
-						+ currentView.getClass().getSimpleName() + ".html")
-						.getContent());
-				getUI().addWindow(window);
-				getUI().setFocusedComponent(window);
+				String name = "help/" + currentView.getClass().getSimpleName() + ".html";
+				ResourceLoader res = new ResourceLoader(name);
+				StreamResource sr = new StreamResource(res, "Hilfe");
+				new PrintingComponent(sr, "Hilfe", MIMEType.HTML);
 			}
 		});
-	}
-
-	/**
-	 * Creates a {@link Window} with a specified help text
-	 * 
-	 * @param helpText
-	 *            {@link String} containing the help text
-	 * @return {@link Window}
-	 */
-	protected Window createHelpWindow(String helpText) {
-		HelpView helpView = new HelpView();
-		if (helpText != null) {
-			helpView.setHelpText(helpText);
-		}
-
-		Window window = new Window("Hilfe", helpView);
-		window.center();
-		window.setWidth("70%");
-		window.setHeight("80%");
-		window.setModal(true);
-		window.setResizable(false);
-		window.setCloseShortcut(KeyCode.ESCAPE, null);
-
-		return window;
 	}
 
 	/**
@@ -303,6 +297,13 @@ public class MainUI extends ScopedUI {
 		Notification.show(messageEvent.caption, messageEvent.message, notificationType);
 	}
 
+	/**
+	 * Handles {@link ConfirmEvent}s showing a window with a cancel and a
+	 * confirm button.
+	 * 
+	 * @param confirmEvent
+	 *            {@link ConfirmEvent}s containing the confirmable information
+	 */
 	@Subscribe
 	public void handleConfirmEvent(final ConfirmEvent confirmEvent) {
 		ConfirmDialog.show(confirmEvent.caption, confirmEvent.message,

@@ -1,14 +1,14 @@
 SET SQL_SAFE_UPDATES=0;
 
-delete from `humbuch`.`schoolyear`;
+delete from `humbuch`.`schoolYear`;
 delete from `humbuch`.`student`;
-delete from `humbuch`.`studentsubject`;
-delete from `humbuch`.`teachingmaterial`;
-delete from `humbuch`.`teachingmaterialsubject`;
-delete from `humbuch`.`borrowedmaterial`;
+delete from `humbuch`.`studentSubject`;
+delete from `humbuch`.`teachingMaterial`;
+delete from `humbuch`.`teachingMaterialSubject`;
+delete from `humbuch`.`borrowedMaterial`;
 delete from `humbuch`.`category`;
-delete from `humbuch`.`dunningdate`;
-delete from `humbuch`.`dunning_has_borrowedmaterial`;
+delete from `humbuch`.`dunningDate`;
+delete from `humbuch`.`dunning_has_borrowedMaterial`;
 delete from `humbuch`.`dunning`;
 delete from `humbuch`.`parent`;
 delete from `humbuch`.`role_has_permission`;
@@ -63,7 +63,6 @@ COMMIT;
 START TRANSACTION;
 USE `humbuch`;
 INSERT INTO `humbuch`.`category` (`id`, `name`, `description`) VALUES (1, 'Bücher', NULL);
-INSERT INTO `humbuch`.`category` (`id`, `name`, `description`) VALUES (2, 'Mobile Device', NULL);
 
 COMMIT;
 
@@ -89,35 +88,12 @@ COMMIT;
 
 
 -- -----------------------------------------------------
--- Data for table `humbuch`.`borrowedMaterial`
--- -----------------------------------------------------
-START TRANSACTION;
-USE `humbuch`;
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (1, 1, 1, '2013-12-04', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (2, 1, 3, '2013-12-29', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (3, 1, 5, '2013-12-29', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (4, 1, 6, '2013-12-29', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (5, 1, 7, '2013-12-29', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (6, 2, 1, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (7, 2, 3, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (8, 2, 5, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (9, 2, 6, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (10, 2, 7, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (11, 3, 3, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (12, 3, 8, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (13, 4, 3, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (14, 4, 8, '2014-01-09', NULL, NULL, 0);
-INSERT INTO `humbuch`.`borrowedMaterial` (`id`, `studentId`, `teachingMaterialId`, `borrowFrom`, `borrowUntil`, `returnDate`, `received`) VALUES (15, 3, 2, '2012-01-01', NULL, NULL, 1);
-
-COMMIT;
-
-
--- -----------------------------------------------------
 -- Data for table `humbuch`.`user`
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `humbuch`;
 INSERT INTO `humbuch`.`user` (`id`, `username`, `password`, `email`) VALUES (1, 'admin', '500:d854d1abe5e05e2e2ad4d3bde6d6c1e858ec18c1:c816e7e095abc356c27ff84ccf5c0c1275299ae4', 'test@test.com');
+INSERT INTO `humbuch`.`user` (`id`, `username`, `password`, `email`) VALUES (2, 'schlager', '500:1dac1aeacf9cc190a569672bea49432f6be88d5e:45446a81139d8aca30ec3762cdf734cbb60adaf9', 'schlager@test.com');
 
 COMMIT;
 
@@ -179,16 +155,16 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `humbuch`;
-INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (1, 1, 'ENGLISH');
+INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (1, 1, 'STANDARD');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (2, 1, 'LATIN');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (3, 1, 'EVANGELIC');
-INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (4, 2, 'ENGLISH');
+INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (4, 2, 'STANDARD');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (5, 2, 'LATIN');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (6, 2, 'EVANGELIC');
-INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (7, 3, 'ENGLISH');
+INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (7, 3, 'STANDARD');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (8, 3, 'LATIN');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (9, 3, 'EVANGELIC');
-INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (10, 4, 'ENGLISH');
+INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (10, 4, 'STANDARD');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (11, 4, 'LATIN');
 INSERT INTO `humbuch`.`studentSubject` (`id`, `studentId`, `subject`) VALUES (12, 4, 'EVANGELIC');
 
@@ -200,10 +176,10 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `humbuch`;
-INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (1, 1, 'ENGLISH');
-INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (2, 2, 'ENGLISH');
-INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (3, 3, 'ENGLISH');
-INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (4, 4, 'ENGLISH');
+INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (1, 1, 'STANDARD');
+INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (2, 2, 'STANDARD');
+INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (3, 3, 'STANDARD');
+INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (4, 4, 'STANDARD');
 INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (5, 5, 'STANDARD');
 INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (6, 6, 'LATIN');
 INSERT INTO `humbuch`.`teachingMaterialSubject` (`id`, `teachingMaterialId`, `subject`) VALUES (7, 7, 'EVANGELIC');
@@ -220,8 +196,7 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `humbuch`;
-INSERT INTO `humbuch`.`setting` (`id`, `key`, `value`) VALUES (1, 'feld1', 'Hallo1');
-INSERT INTO `humbuch`.`setting` (`id`, `key`, `value`) VALUES (2, 'feld2', 'Hallo2');
-INSERT INTO `humbuch`.`setting` (`id`, `key`, `value`) VALUES (3, 'feld3', 'Hallo3');
+INSERT INTO `humbuch`.`setting` (`id`, `settingKey`, `settingValue`, `settingStandardValue`) VALUES (4, 'dun_firstDunningDeadline', '14', '14');
+INSERT INTO `humbuch`.`setting` (`id`, `settingKey`, `settingValue`, `settingStandardValue`) VALUES (5, 'dun_secondDunningDeadline', '14', '14');
 
 COMMIT;

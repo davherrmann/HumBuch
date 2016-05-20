@@ -3,6 +3,7 @@ package de.dhbw.humbuch.view.components;
 import java.io.Serializable;
 
 import com.vaadin.event.ShortcutAction.KeyCode;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -13,6 +14,10 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+/**
+ * @author David Vitt
+ *
+ */
 public class ConfirmDialog extends Window {
 	private static final long serialVersionUID = 5531902128467189080L;
 
@@ -71,6 +76,7 @@ public class ConfirmDialog extends Window {
         // Label for message
         Label text = new Label();
         text.setValue(message);
+        text.setContentMode(ContentMode.HTML);
         
         // Panel for message
         Panel messagePanel = new Panel(text);

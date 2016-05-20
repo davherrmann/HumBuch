@@ -50,6 +50,8 @@ import de.dhbw.humbuch.viewmodel.StudentInformationViewModel.Students;
  * containing actions and a StudentMaterialSelector with all information about
  * the lent books of students. It is used to return the books and create student
  * lists.
+ * 
+ * @author Henning Muszynski
  * */
 public class ReturnView extends VerticalLayout implements View,
 		ViewInformation, StudentMaterialSelectorObserver {
@@ -123,7 +125,6 @@ public class ReturnView extends VerticalLayout implements View,
 		buttonManualReturn = new Button(MANUAL_RETURN);
 		textFieldStudentFilter = new TextField();
 
-		buttonSaveSelectedData.addStyleName("default");
 		buttonSaveSelectedData.setEnabled(false);
 		buttonStudentList.setEnabled(false);
 
@@ -236,6 +237,7 @@ public class ReturnView extends VerticalLayout implements View,
 			public void buttonClick(ClickEvent event) {
 				HashSet<Student> selectedStudents = (HashSet<Student>) studentMaterialSelector
 						.getCurrentlySelectedStudents();
+				studentInformationViewModel.refresh();
 				if (selectedStudents.size() == 0) {
 					SelectStudentPopupWindow sspw = new SelectStudentPopupWindow(
 							MANUAL_RETURN_TITLE, ReturnView.this, students
@@ -371,7 +373,7 @@ public class ReturnView extends VerticalLayout implements View,
 		return TITLE;
 	}
 
-	/*
+	/**
 	 * Update procedure from the view model in order to get new information
 	 * without the need to manually refresh.
 	 */

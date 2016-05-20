@@ -4,14 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-import com.lowagie.text.BadElementException;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
@@ -29,12 +26,17 @@ import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfWriter;
 import com.vaadin.server.StreamResource.StreamSource;
 
-
+/**
+ * Abstract super class for PDF creation. Determines general layout of PDFs.
+ * @author Benjamin Räthlein
+ *
+ */
 public abstract class PDFHandler {
 
 	private Document document;
 	private HeaderFooter event;
-	protected static float TABLEWIDTH = 418f;
+	protected final static float TABLEWIDTH = 460f;
+	protected final static float CELL_PADDING = 7f;
 
 	/**
 	 * 
@@ -45,8 +47,12 @@ public abstract class PDFHandler {
 		this.document = new Document();
 	}
 
+	/**
+	 * Create a document with the specified sizes and margins. This document is the internal representation 
+	 * of the PDF.
+	 */
 	public PDFHandler() {
-		this.document = new Document(new RectangleReadOnly(595,842), 10, 10, 25, 35);
+		this.document = new Document(new RectangleReadOnly(595,842), 30f, 30f, 25f, 35f);
 	}
 
 	/**
@@ -73,33 +79,6 @@ public abstract class PDFHandler {
 		this.addMetaData(document);
 		this.insertDocumentParts(document);
 		this.document.close();
-	}
-
-	/**
-	 * User can choose a printer where this pdf is printed then. The pdf
-	 * contains the information stored in the object that was send to the
-	 * constructor previously.
-	 * 
-	 */
-	public void printPDF() {
-		ByteArrayOutputStream byteArrayOutputStream;
-		try {
-			byteArrayOutputStream = new ByteArrayOutputStream();
-			PdfWriter writer = PdfWriter.getInstance(document, byteArrayOutputStream);
-			event = new HeaderFooter();
-			writer.setBoxSize("art", new Rectangle(36, 54, 559, 788));
-			writer.setPageEvent(event);
-
-			this.document.open();
-			this.addMetaData(document);
-			this.insertDocumentParts(document);
-			this.document.close();
-
-			new PDFPrinter(byteArrayOutputStream);
-		}
-		catch (DocumentException e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
@@ -167,23 +146,13 @@ public abstract class PDFHandler {
 		table.setTotalWidth(TABLEWIDTH);
 		PdfPCell cell;
 
-		try {
-			Image img = Image.getInstance("./res/Logo_Humboldt_Gym_70_klein_3.png");
-			img.setAlignment(Element.ALIGN_BOTTOM);
-			cell = new PdfPCell(img);
+		Image img = new ResourceLoader("pdf/humboldt_logo.png").getImage();
+		img.setAlignment(Element.ALIGN_BOTTOM);
+		img.scaleToFit(205f, 65f);
+		cell = new PdfPCell(img);
 
-			cell.setBorder(0);
-			table.addCell(cell);
-		}
-		catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		catch (BadElementException e) {
-			e.printStackTrace();
-		}
+		cell.setBorder(0);
+		table.addCell(cell);
 
 		String date = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(Calendar.getInstance().getTime());
 
@@ -284,17 +253,17 @@ public abstract class PDFHandler {
 			e.printStackTrace();
 		}
 	}
-
+	
 	/**
 	 * A table is generated with the header: Klasse, Bezeichnung Lehrmittel, Unterschrift
 	 * 
 	 * @return PdfPTable
 	 */
 	protected PdfPTable createTableWithRentalInformationHeader() {
-		PdfPTable table = createMyStandardTable(3, new float[] { 3f, 1f, 1f });
+		PdfPTable table = createMyStandardTable(3, new float[] { 2.25f, 1f, 1f });
 		Font font = FontFactory.getFont("Helvetica", 12, Font.BOLD);
 		new PDFHandler.TableBuilder(table, new String[] { "Bezeichnung Lehrmittel", "bis Klasse", "Unterschrift" }).withBorder(true)
-				.isCenterAligned(true).font(font).fillTable();
+				.isCenterAligned(true).font(font).padding(CELL_PADDING).fillTable();
 
 		return table;
 	}
@@ -308,7 +277,7 @@ public abstract class PDFHandler {
 		PdfPTable table = createMyStandardTable(2, new float[] { 3f, 1f});
 		Font font = FontFactory.getFont("Helvetica", 12, Font.BOLD);
 		new PDFHandler.TableBuilder(table, new String[] { "Bezeichnung Lehrmittel", "bis Klasse"}).withBorder(true)
-				.isCenterAligned(true).font(font).padding(5f).fillTable();
+				.isCenterAligned(true).font(font).padding(CELL_PADDING).fillTable();
 
 		return table;
 	}
@@ -321,7 +290,7 @@ public abstract class PDFHandler {
 	protected PdfPTable createTableWithRentalInformationHeaderForClass() {
 		PdfPTable table = createMyStandardTable(2, new float[] { 3f, 1f });
 		Font font = FontFactory.getFont("Helvetica", 12, Font.BOLD);
-		new PDFHandler.TableBuilder(table, new String[] { "Bezeichnung Lehrmittel", "Anzahl" }).withBorder(true).font(font).isCenterAligned(true).padding(5f).fillTable();
+		new PDFHandler.TableBuilder(table, new String[] { "Bezeichnung Lehrmittel", "Anzahl" }).withBorder(true).font(font).isCenterAligned(true).padding(CELL_PADDING).fillTable();
 
 		return table;
 	}

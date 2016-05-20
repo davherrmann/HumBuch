@@ -15,6 +15,7 @@ import de.dhbw.humbuch.model.entity.Entity;
  * Data Access Object for inserting, updating, finding or deleting one or more
  * entities of the indicated type in a database
  * 
+ * @author davherrmann
  * @param <EntityType>
  *            type of the {@link Entity}s handled by the {@link DAO}
  */
@@ -26,7 +27,7 @@ public interface DAO<EntityType extends Entity> {
 	public enum FireUpdateEvent { YES, NO }
 
 	/**
-	 * Persist the indicated entity to database, automatically fire an update event
+	 * Persist the indicated entity to database, don't fire an update event
 	 * 
 	 * @param entity
 	 * @return the primary key
@@ -44,15 +45,25 @@ public interface DAO<EntityType extends Entity> {
 	EntityType insert(EntityType entity, FireUpdateEvent fireUpdateEvent);
 	
 	/**
-	 * Retrieve an object using indicated ID
+	 * Persist the indicated entity {@link Collection} to database, don't fire an update event
 	 * 
-	 * @param id
-	 * @return entity
+	 * @param entity
+	 * @return the primary key
 	 */
-	EntityType find(final Object id);
+	Collection<EntityType> insert(Collection<EntityType> entities);
+	
+	/**
+	 * Persist the indicated entity {@link Collection} to database, fire an update event when 
+	 * {@link FireUpdateEvent.YES} is passed
+	 * 
+	 * @param entity
+	 * @param fireUpdateEvent
+	 * @return the primary key
+	 */
+	Collection<EntityType> insert(Collection<EntityType> entities, FireUpdateEvent fireUpdateEvent);
 
 	/**
-	 * Update indicated entity to database, automatically fire an update event
+	 * Update indicated entity to database, don't fire an update event
 	 * 
 	 * @param entity
 	 */
@@ -68,7 +79,23 @@ public interface DAO<EntityType extends Entity> {
 	void update(EntityType entity, FireUpdateEvent fireUpdateEvent);
 
 	/**
-	 * Delete indicated entity from database, automatically fire an update event
+	 * Update indicated entity {@link Collection} to database, don't fire an update event
+	 * 
+	 * @param entity
+	 */
+	void update(Collection<EntityType> entities);
+	
+	/**
+	 * Update indicated entity {@link Collection} to database, fire an update event when 
+	 * {@link FireUpdateEvent.YES} is passed
+	 * 
+	 * @param entity
+	 * @param fireUpdateEvent
+	 */
+	void update(Collection<EntityType> entities, FireUpdateEvent fireUpdateEvent);
+	
+	/**
+	 * Delete indicated entity from database, don't fire an update event
 	 * 
 	 * @param entity
 	 */
@@ -84,6 +111,22 @@ public interface DAO<EntityType extends Entity> {
 	void delete(EntityType entity, FireUpdateEvent fireUpdateEvent);
 
 	/**
+	 * Delete indicated entity {@link Collection} from database, don't fire an update event
+	 * 
+	 * @param entity
+	 */
+	void delete(Collection<EntityType> entities);
+	
+	/**
+	 * Delete indicated entity {@link Collection} from database, fire an update event when 
+	 * {@link FireUpdateEvent.YES} is passed
+	 * 
+	 * @param entity
+	 * @param fireUpdateEvent
+	 */
+	void delete(Collection<EntityType> entities, FireUpdateEvent fireUpdateEvent);
+	
+	/**
 	 * Return the entity class
 	 * 
 	 * @return entity
@@ -96,6 +139,14 @@ public interface DAO<EntityType extends Entity> {
 	 * @return entity
 	 */
 	EntityManager getEntityManager();
+
+	/**
+	 * Retrieve an object using indicated ID
+	 * 
+	 * @param id
+	 * @return entity
+	 */
+	EntityType find(final Object id);
 
 	/**
 	 * Retrieve all entities of the type indicated by the {@link DAO}
@@ -162,5 +213,4 @@ public interface DAO<EntityType extends Entity> {
 	 * Fire an update event
 	 */
 	void fireUpdateEvent();
-	
 }

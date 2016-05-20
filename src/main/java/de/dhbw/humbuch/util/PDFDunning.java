@@ -11,7 +11,11 @@ import com.lowagie.text.pdf.PdfPTable;
 import de.dhbw.humbuch.model.entity.BorrowedMaterial;
 import de.dhbw.humbuch.model.entity.Student;
 
-
+/**
+ * Create dunnings. First dunning addresses the student, second dunning the parent of the student.
+ * @author Benjamin Räthlein
+ *
+ */
 public class PDFDunning extends PDFHandler {
 
 	Student student;
@@ -77,12 +81,12 @@ public class PDFDunning extends PDFHandler {
 		PdfPTable table = PDFHandler.createMyStandardTable(1);
 		String dunningText = "";
 		if (!this.secondDunning) {
-			dunningText = "Wir bitten darum, folgende Bücher innerhalb von 2 Wochen zurückzugeben oder Ersatz zu beschaffen:";
+			dunningText = "Wir bitten darum, folgende Lehrmittel innerhalb von 2 Wochen zurückzugeben oder Ersatz zu beschaffen:";
 		}
 		else {
 			dunningText = "Sehr geehrte/r " + student.getParent().getTitle() + " " + student.getParent().getLastname() + ",\n\n"
-					+ "leider müssen wir mitteilen, dass " + student.getFirstname() + " trotz bereits erfolgter Mahnung die unten aufgelisteten"
-					+ " Bücher nicht zurückgegeben hat. Wir bitten darum, folgende Bücher innerhalb von 2 Wochen zurückzugeben oder Ersatz zu beschaffen. \n\n"
+					+ "leider müssen wir Ihnen mitteilen, dass " + student.getFirstname() + " trotz bereits erfolgter Mahnung die unten aufgelisteten"
+					+ " Lehrmittel nicht zurückgegeben hat. Wir bitten darum, folgende Lehrmittel innerhalb von 2 Wochen zurückzugeben oder Ersatz zu beschaffen. \n\n"
 					+ "Mit freundlichen Grüßen \n"
 					+ "Ihre Schulverwaltung";
 		}
@@ -96,18 +100,17 @@ public class PDFDunning extends PDFHandler {
 			e.printStackTrace();
 		}
 
-		table = this.createTableWithRentalInformationHeader();
+		table = this.createTableWithRentalInformationHeaderWithoutSignColumn();
 
 		Iterator<BorrowedMaterial> iterator = this.borrowedMaterials.iterator();
 		BorrowedMaterial borrowedMaterial;
 		while (iterator.hasNext()) {
 			borrowedMaterial = (BorrowedMaterial) iterator.next();
 			String[] contentArray = { borrowedMaterial.getTeachingMaterial().getName(),
-										"" + borrowedMaterial.getTeachingMaterial().getToGrade(),
-										"" };
+										"" + borrowedMaterial.getTeachingMaterial().getToGrade()};
 
 			new PDFHandler.TableBuilder(table, contentArray).withBorder(true).
-					isCenterAligned(true).padding(5f).fillTable();
+					isCenterAligned(true).padding(PDFHandler.CELL_PADDING).fillTable();
 		}
 
 		try {
@@ -126,7 +129,8 @@ public class PDFDunning extends PDFHandler {
 	 */
 	private void addStudentInformation(Document document) {
 		PdfPTable table = PDFHandler.createMyStandardTable(2, new float[] { 1f, 6f });
-
+		table.setSpacingBefore(20f);
+		
 		String[] contentArray = { "Schüler: ", this.student.getFirstname() + " " + this.student.getLastname(),
 									"Klasse: ", "" + this.student.getGrade().toString() };
 		
@@ -142,9 +146,10 @@ public class PDFDunning extends PDFHandler {
 		}
 	}
 
-	private void addParentInformation(Document document) {
+	private void addParentInformation(Document document) {				
 		PdfPTable table = PDFHandler.createMyStandardTable(1);
-
+		table.setSpacingBefore(23f);
+		
 		String[] contentArray = { this.student.getParent().getTitle(),
 									this.student.getParent().getFirstname() + " " + this.student.getParent().getLastname(),
 									this.student.getParent().getStreet(),

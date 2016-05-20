@@ -1,5 +1,6 @@
 package de.dhbw.humbuch.viewmodel;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
@@ -21,10 +22,18 @@ import de.dhbw.humbuch.model.entity.BorrowedMaterial;
 import de.dhbw.humbuch.model.entity.Category;
 import de.dhbw.humbuch.model.entity.TeachingMaterial;
 
+/**
+ * Provides the {@link TeachingMaterialView} with data to display and manage teaching materials
+ * 
+ * @author David Vitt
+ * @author Martin Wentzel
+ *
+ */
 public class TeachingMaterialViewModel {
 
 	public interface TeachingMaterials extends State<Collection<TeachingMaterial>> {}
 	public interface Categories extends State<Collection<Category>> {}
+	public interface StandardCategory extends State<Category> {}
 
 	public interface DoUpdateTeachingMaterial extends ActionHandler {}
 	public interface DoFetchTeachingMaterial extends ActionHandler {}
@@ -35,7 +44,10 @@ public class TeachingMaterialViewModel {
 	public final State<Collection<TeachingMaterial>> teachingMaterials = new BasicState<>(Collection.class);
 
 	@ProvidesState(Categories.class)
-	public final State<Collection<Category>> categories = new BasicState<>(	Collection.class);
+	public final State<Collection<Category>> categories = new BasicState<>(Collection.class);
+	
+	@ProvidesState(StandardCategory.class)
+	public final State<Category> standardCategory = new BasicState<>(Category.class);
 
 	private DAO<TeachingMaterial> daoTeachingMaterial;
 	private DAO<Category> daoCategory;
@@ -59,6 +71,12 @@ public class TeachingMaterialViewModel {
 	}
 
 	@AfterVMBinding
+	public void initialiseStates() {
+		teachingMaterials.set(new ArrayList<TeachingMaterial>());
+		categories.set(new ArrayList<Category>());
+		standardCategory.set(null);
+	}
+	
 	public void refresh() {
 		updateTeachingMaterials();
 		updateCategories();
@@ -70,6 +88,7 @@ public class TeachingMaterialViewModel {
 
 	private void updateCategories() {
 		categories.set(daoCategory.findAll());
+		standardCategory.set(daoCategory.findSingleWithCriteria(Restrictions.ilike("name", "B%ch%")));
 	}
 
 	/**
@@ -94,7 +113,7 @@ public class TeachingMaterialViewModel {
 	 * by a student.
 	 * 
 	 * @param teachingMaterial
-	 *            the teacing material to be updated or deleted
+	 *            the teaching material to be updated or deleted
 	 */
 	@HandlesAction(DoDeleteTeachingMaterial.class)
 	public void doDeleteTeachingMaterial(TeachingMaterial teachingMaterial) {

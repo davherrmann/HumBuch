@@ -2,7 +2,6 @@ package de.dhbw.humbuch.view.components;
 
 import java.util.Iterator;
 
-import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -15,6 +14,12 @@ import com.vaadin.ui.VerticalLayout;
 
 import de.dhbw.humbuch.view.MainUI;
 
+/**
+ * 
+ * @author Johannes Idelhauser
+ * @author Henning Muszynski
+ *
+ */
 public class Sidebar extends VerticalLayout {
 	private static final long serialVersionUID = -2263554457706891669L;
 
@@ -23,7 +28,6 @@ public class Sidebar extends VerticalLayout {
 	 * First value of the array is the human readable caption of the button, the
 	 * second one the name of the specific view to load.
 	 */
-	// TODO refactor when a good navigation method is found
 	private static final String[][] navigationButtons = new String[][] {
 			{ "Ausleihe", MainUI.LENDING_VIEW },
 			{ "Rückgabe", MainUI.RETURN_VIEW },
@@ -41,6 +45,7 @@ public class Sidebar extends VerticalLayout {
 	
 	@SuppressWarnings("serial")
 	private void init() {
+		//Create the branding image
         CssLayout branding = new CssLayout() {
         	{
 				addStyleName("branding");
@@ -53,9 +58,7 @@ public class Sidebar extends VerticalLayout {
         };
         addComponent(branding);
         
-		/*
-		 * TODO insert the correct constants for the corresponding screens
-		 */
+        //Create the menubar with buttons
 		menu = new VerticalLayout();
 		menu.addStyleName("menu");
 
@@ -63,6 +66,7 @@ public class Sidebar extends VerticalLayout {
 			Button b = new NativeButton(view[0]);
 
 			b.addStyleName("icon-" + view[1]);
+			b.setData(view[1]);
 			b.addClickListener(new ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {
@@ -76,16 +80,13 @@ public class Sidebar extends VerticalLayout {
 
 				}
 			});
-			String f = Page.getCurrent().getUriFragment();
-			if (f.substring(1).equals(view[1])) {
-				b.addStyleName("selected");
-			}
 
 			menu.addComponent(b);
 		}
 		addComponent(menu);
 		setExpandRatio(menu, 1);
 
+		//Setting and logout buttons
 		VerticalLayout userButtons = new VerticalLayout();
 		userButtons.setSizeUndefined();
 		userButtons.addStyleName("user");
@@ -119,7 +120,7 @@ public class Sidebar extends VerticalLayout {
 	}
 
 	/**
-	 * Removes the style 'selected' from the menu buttons
+	 * Removes the style 'selected' from all menu buttons
 	 */
 	private void clearMenuBar() {
 		for (Iterator<Component> it = menu.iterator(); it.hasNext();) {
@@ -130,8 +131,31 @@ public class Sidebar extends VerticalLayout {
 		}
 		btnSettings.removeStyleName("selected");
 	}
-	
+	/**
+	 * Returns the logout button
+	 * @return The {@link Button} to logout
+	 */
 	public Button getLogoutButton() {
 		return btnLogout;
+	}
+
+	/**
+	 * Changes the selection of buttons in the menu bar.
+	 * @param view {@link String} with the name of the newly selected view
+	 */
+	public void changeMenuBarSelection(String view) {
+		clearMenuBar();
+		if(view.equals(MainUI.SETTINGS_VIEW)) {
+			btnSettings.addStyleName("selected");
+		} else {
+			for (Iterator<Component> it = menu.iterator(); it.hasNext();) {
+				Component next = it.next();
+				if (next instanceof NativeButton) {
+					if (view.equals(((NativeButton) next).getData())) {
+						next.addStyleName("selected");
+					}
+				}
+			}
+		}
 	}
 }

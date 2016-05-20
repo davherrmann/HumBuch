@@ -10,6 +10,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Ignore;
+
 import de.dhbw.humbuch.model.SubjectHandler;
 import de.dhbw.humbuch.model.entity.BorrowedMaterial;
 import de.dhbw.humbuch.model.entity.Grade;
@@ -24,8 +26,12 @@ import de.dhbw.humbuch.model.entity.TeachingMaterial;
  * This class contains test data to generate PDFs. It does NOT contain any JUnit
  * tests. Use this class to create PDFs. After the creation one has to check
  * them manually!
+ * 
+ * @author Benjamin Räthlein
+ * 
  */
 
+@Ignore("Manual test")
 public class PDFTest {
 
 	public static void main(String[] args) {
@@ -58,7 +64,7 @@ public class PDFTest {
 				borrowedMaterialList.add(borrowedMaterial);
 			}
 
-			student.setBorrowedList(borrowedMaterialList);
+			student.setBorrowedMaterials(borrowedMaterialList);
 
 			PDFStudentList.Builder builder = new PDFStudentList.Builder().borrowedMaterialList(borrowedMaterialList).
 					lendingList(borrowedMaterialList).returnList(borrowedMaterialList);
@@ -105,9 +111,9 @@ public class PDFTest {
 			borrowedMaterial = new BorrowedMaterial.Builder(student, teachingMaterial, null).build();
 			borrowedMaterialList.add(borrowedMaterial);
 
-			student.setBorrowedList(borrowedMaterialList);
+			student.setBorrowedMaterials(borrowedMaterialList);
 			Set<List<BorrowedMaterial>> borrowedMaterials = new LinkedHashSet<List<BorrowedMaterial>>();
-			borrowedMaterials.add(student.getBorrowedList());
+			borrowedMaterials.add(student.getBorrowedMaterials());
 			PDFDunning.createFirstDunning(borrowedMaterials).savePDF("./testfiles/DunningPdf.pdf");
 		}
 		catch (ParseException e) {
@@ -134,9 +140,9 @@ public class PDFTest {
 			borrowedMaterial = new BorrowedMaterial.Builder(student, teachingMaterial, null).build();
 			borrowedMaterialList.add(borrowedMaterial);
 
-			student.setBorrowedList(borrowedMaterialList);
+			student.setBorrowedMaterials(borrowedMaterialList);
 			Set<List<BorrowedMaterial>> borrowedMaterials = new LinkedHashSet<List<BorrowedMaterial>>();
-			borrowedMaterials.add(student.getBorrowedList());
+			borrowedMaterials.add(student.getBorrowedMaterials());
 			PDFDunning.createSecondDunning(borrowedMaterials).savePDF("./testfiles/secondDunningPdf.pdf");
 		}
 		catch (ParseException e) {

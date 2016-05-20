@@ -22,6 +22,12 @@ import de.dhbw.humbuch.model.entity.User;
 import de.dhbw.humbuch.util.PasswordHash;
 import de.dhbw.humbuch.view.MainUI;
 
+
+/**
+ * @author David Vitt
+ * @author Johannes Idelhauser
+ *
+ */
 public class LoginViewModel {
 
 	private final static Logger LOG = LoggerFactory.getLogger(MainUI.class);
@@ -66,6 +72,8 @@ public class LoginViewModel {
 	 */
 	@HandlesAction(DoLogin.class)
 	public void doLogin(String username, String password) {
+		properties.currentUser.set(null);
+		updateLoginStatus();
 		try {
 			if (username.equals("") || password.equals("")) {
 				eventBus.post(new LoginEvent("Bitte geben Sie einen Nutzernamen und Passwort an."));

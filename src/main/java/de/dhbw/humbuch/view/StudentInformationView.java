@@ -132,7 +132,6 @@ public class StudentInformationView extends VerticalLayout implements View,
 
 		showMaterials = new Button("Materialien anzeigen");
 		showMaterials.setEnabled(false);
-		showMaterials.addStyleName("default");
 		buttons.addComponent(showMaterials);
 		buttons.setSpacing(true);
 
@@ -151,17 +150,20 @@ public class StudentInformationView extends VerticalLayout implements View,
 		studentsTable = new Table() {
 			private static final long serialVersionUID = 1885098955441122118L;
 
+			final SimpleDateFormat df = new SimpleDateFormat();
+			
+			{
+				df.applyPattern("dd.MM.yyyy");
+			}
+
 			@Override
 			protected String formatPropertyValue(Object rowId, Object colId,
 					Property<?> property) {
 				if (colId.equals(TABLE_BIRTHDAY)) {
-					SimpleDateFormat df = new SimpleDateFormat();
-					df.applyPattern("dd.MM.yyyy");
 					if (property.getValue() == null) {
 						return null;
 					} else {
-						return df
-								.format(((Date) property.getValue()).getTime());
+						return df.format(((Date) property.getValue()).getTime());
 					}
 				}
 				return super.formatPropertyValue(rowId, colId, property);
@@ -293,7 +295,7 @@ public class StudentInformationView extends VerticalLayout implements View,
 			List<BorrowedMaterial> borrowedMaterials = new ArrayList<BorrowedMaterial>();
 			;
 
-			for (BorrowedMaterial bm : item.getBorrowedList()) {
+			for (BorrowedMaterial bm : item.getBorrowedMaterials()) {
 				if (bm.isReceived() && bm.getReturnDate() == null) {
 					borrowedMaterials.add(bm);
 				}
@@ -323,6 +325,11 @@ public class StudentInformationView extends VerticalLayout implements View,
 	 */
 	@Override
 	public void enter(ViewChangeEvent event) {
+		/*
+		 * BUGFIX: Set the value of the table to null so the user has to update
+		 * the selection if he/she wants to edit the same item again.
+		 */
+		studentsTable.setValue(null);
 		studentInformationViewModel.refresh();
 	}
 

@@ -19,6 +19,7 @@ import com.vaadin.data.util.filter.Or;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.event.ShortcutListener;
 import com.vaadin.navigator.View;
@@ -56,11 +57,14 @@ import de.dhbw.humbuch.util.BookLookup.Book;
 import de.dhbw.humbuch.util.BookLookup.BookNotFoundException;
 import de.dhbw.humbuch.viewmodel.TeachingMaterialViewModel;
 import de.dhbw.humbuch.viewmodel.TeachingMaterialViewModel.Categories;
+import de.dhbw.humbuch.viewmodel.TeachingMaterialViewModel.StandardCategory;
 import de.dhbw.humbuch.viewmodel.TeachingMaterialViewModel.TeachingMaterials;
 
 /**
+ * {@link View} to manage the lendable teaching materials.
  * 
  * @author Martin Wentzel
+ * @author Johannes Idelhauser
  * 
  */
 public class TeachingMaterialView extends VerticalLayout implements View, ViewInformation {
@@ -103,6 +107,9 @@ public class TeachingMaterialView extends VerticalLayout implements View, ViewIn
 	
 	@BindState(Categories.class)
 	public final State<Collection<Category>> categories = new BasicState<>(Collection.class);
+	
+	@BindState(StandardCategory.class)
+	public final State<Category> standardCategory = new BasicState<>(Category.class);
 
 	/**
 	 * All popup-window components and the corresponding binded states. The
@@ -175,7 +182,6 @@ public class TeachingMaterialView extends VerticalLayout implements View, ViewIn
 		// Edit
 		btnEdit = new Button("Bearbeiten");
 		btnEdit.setEnabled(false);
-		btnEdit.addStyleName("default");
 		btnEdit.setClickShortcut(KeyCode.ENTER);
 		buttons.addComponent(btnEdit);
 
@@ -353,31 +359,41 @@ public class TeachingMaterialView extends VerticalLayout implements View, ViewIn
 	private void addListener() {
 
 		/**
-		 * Fetches the book data by using a given ISBN and inserting it into the
-		 * corresponding fields
+		 * Fetches the book data by using a given ISBN. After fetching the data
+		 * it is inserted into the corresponding fields.
 		 */
 		btnISBNImport.addClickListener(new ClickListener() {
 
 			@Override
 			public void buttonClick(ClickEvent event) {
-				try {
-					Book book = BookLookup.lookup(txtIdentNr.getValue());
-					txtTmName.setValue(book.title);
-					txtProducer.setValue(book.publisher);
-					String commentText = "Autor(en): " + book.author;
-					if (textAreaComment.getValue() != null && !textAreaComment.getValue().isEmpty()) {
-						commentText += '\n' + textAreaComment.getValue();
-					}
-					textAreaComment.setValue(commentText);
-				} catch (BookNotFoundException e) {
-					eventBus.post(new MessageEvent("Es konnte kein Buch zu der ISBN gefunden werden."));
+				//Check if empty
+				if (txtIdentNr.getValue() == null) {
+					eventBus.post(new MessageEvent("Bitte geben Sie eine ISBN an."));
+					return;
 				}
+				
+				Runnable confirmRunnable = new Runnable() {
+					@Override
+					public void run() {
+						try {
+							Book book = BookLookup.lookup(txtIdentNr.getValue());
+							txtTmName.setValue(book.title);
+							txtProducer.setValue(book.publisher);
+							textAreaComment.setValue(book.publisher);
+						} catch (BookNotFoundException e) {
+							eventBus.post(new MessageEvent("Es konnte kein Buch zu der ISBN gefunden werden."));
+						}
+					}
+				};
+				eventBus.post(new ConfirmEvent.Builder("Alle bereits eingegebenen Daten des Lehrmittels werden überschrieben.<br>Wollen Sie wirklich fortfahren?")
+					.caption("Daten werden überschrieben").confirmRunnable(confirmRunnable).build());
+
 			}			
 		});
 		
 		/**
 		 * Listens for changes in the Collection teachingMaterials and adds them
-		 * to the container
+		 * to the container.
 		 */
 		teachingMaterials.addStateChangeListener(new StateChangeListener() {
 			@Override
@@ -399,6 +415,17 @@ public class TeachingMaterialView extends VerticalLayout implements View, ViewIn
 						.getValue();
 				btnEdit.setEnabled(item != null);
 				btnDelete.setEnabled(item != null);
+			}
+		});
+		
+		// Double click on a row: make it editable
+		materialsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent itemClickEvent) {
+				if (itemClickEvent.isDoubleClick() && !materialsTable.isEditable()) {
+					materialsTable.setValue(itemClickEvent.getItemId());
+					btnEdit.click();
+				}
 			}
 		});
 
@@ -423,8 +450,7 @@ public class TeachingMaterialView extends VerticalLayout implements View, ViewIn
 		btnNew.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				TeachingMaterial item = new TeachingMaterial.Builder(null,
-						null, null, new Date()).build();
+				TeachingMaterial item = new TeachingMaterial.Builder(standardCategory.get(), null, null, new Date()).build();
 				binder.setItemDataSource(item);
 				UI.getCurrent().addWindow(windowEditTeachingMaterial);
 				txtTmName.focus();
@@ -539,6 +565,7 @@ public class TeachingMaterialView extends VerticalLayout implements View, ViewIn
 					cbCategory.addItem(cat);
 					cbCategory.setItemCaption(cat, cat.getName());
 				}
+
 			}
 		});
 

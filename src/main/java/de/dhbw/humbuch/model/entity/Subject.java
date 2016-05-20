@@ -1,9 +1,11 @@
 package de.dhbw.humbuch.model.entity;
 
+/**
+ * @author David Vitt
+ *
+ */
 public enum Subject {
-	
-	@Deprecated
-	ENGLISH("Englisch"),
+
 	STANDARD("Standard"),
 	FRENCH2("Französisch 2"),
 	FRENCH3("Französisch 3"),

@@ -2,8 +2,10 @@ package de.dhbw.humbuch.model.entity;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,10 +19,16 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+/**
+ * @author David Vitt
+ *
+ */
 @Entity
 @Table(name="student")
 public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializable, Comparable<Student> {
@@ -39,8 +47,15 @@ public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 	private boolean leavingSchool;
 	
 	@OneToMany(mappedBy="student", fetch=FetchType.LAZY)
-	private List<BorrowedMaterial> borrowedList = new ArrayList<BorrowedMaterial>();
+	private List<BorrowedMaterial> borrowedMaterials = new ArrayList<BorrowedMaterial>();
 
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(
+			name="borrowedMaterial",
+			joinColumns={@JoinColumn(name="studentId", referencedColumnName="id")},
+			inverseJoinColumns={@JoinColumn(name="teachingMaterialId", referencedColumnName="id")})
+	private Collection<TeachingMaterial> teachingMaterials = new HashSet<>();
+	
 	@ElementCollection(targetClass=Subject.class)
 	@Enumerated(EnumType.STRING)
 	@CollectionTable(name="studentSubject", joinColumns = @JoinColumn(name="studentId"))
@@ -52,7 +67,7 @@ public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 	private Parent parent;
 	
 	@OneToMany(mappedBy="student", fetch=FetchType.LAZY)
-	private List<Dunning> dunningList = new ArrayList<Dunning>();
+	private List<Dunning> dunnings = new ArrayList<Dunning>();
 	
 	/**
 	 * Required by Hibernate.<p>
@@ -119,14 +134,18 @@ public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 		this.parent = parent;
 	}
 
-	public List<BorrowedMaterial> getBorrowedList() {
-		return borrowedList;
+	public List<BorrowedMaterial> getBorrowedMaterials() {
+		return borrowedMaterials;
 	}
 
-	public void setBorrowedList(List<BorrowedMaterial> borrowedList) {
-		this.borrowedList = borrowedList;
+	public void setBorrowedMaterials(List<BorrowedMaterial> borrowedMaterials) {
+		this.borrowedMaterials = borrowedMaterials;
 	}
 	
+	public Collection<TeachingMaterial> getTeachingMaterials() {
+		return teachingMaterials;
+	}
+
 	public Set<Subject> getProfile() {
 		return profile;
 	}
@@ -151,13 +170,13 @@ public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 		this.leavingSchool = leavingSchool;
 	}
 	
-	public List<Dunning> getDunningList() {
-		return dunningList;
+	public List<Dunning> getDunnings() {
+		return dunnings;
 	}
 
 	public List<BorrowedMaterial> getUnreceivedBorrowedList() {
 		List<BorrowedMaterial> unreceivedBorrowedMaterials = new ArrayList<BorrowedMaterial>();
-		for (BorrowedMaterial borrowedMaterial : getBorrowedList()) {
+		for (BorrowedMaterial borrowedMaterial : getBorrowedMaterials()) {
 			if(!borrowedMaterial.isReceived()) {
 				unreceivedBorrowedMaterials.add(borrowedMaterial);
 			}
@@ -167,10 +186,8 @@ public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 	}
 	
 	public List<BorrowedMaterial> getReceivedBorrowedMaterials() {
-		List<BorrowedMaterial> receivedBorrowedMaterials = getBorrowedList();
+		List<BorrowedMaterial> receivedBorrowedMaterials = getBorrowedMaterials();
 		receivedBorrowedMaterials.removeAll(getUnreceivedBorrowedList());
-		
-
 		
 		return receivedBorrowedMaterials;
 	}
@@ -188,13 +205,23 @@ public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 	}
 	
 	public boolean hasUnreceivedBorrowedMaterials() {
-		for(BorrowedMaterial borrowedMaterial : getBorrowedList()) {
+		for(BorrowedMaterial borrowedMaterial : getBorrowedMaterials()) {
 			if(!borrowedMaterial.isReceived()) {
 				return true;
 			}
 		}
 		
 		return false;
+	}
+	
+	public void copyDataFrom(Student student) {
+		setBirthday(student.getBirthday());
+		setFirstname(student.getFirstname());
+		setGender(student.getGender());
+		setGrade(student.getGrade());
+		setLastname(student.getLastname());
+		setParent(student.getParent());
+		setProfile(student.getProfile());
 	}
 
 	public static class Builder {
@@ -257,7 +284,7 @@ public class Student implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 		leavingSchool = builder.leavingSchool;
 		
 		gender = builder.gender;
-		borrowedList = builder.borrowedList;
+		borrowedMaterials = builder.borrowedList;
 		profile = builder.profile;
 		parent = builder.parent;
 		

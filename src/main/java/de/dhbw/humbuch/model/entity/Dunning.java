@@ -26,6 +26,10 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.MapKeyEnumerated;
 import javax.persistence.Table;
 
+/**
+ * @author David Vitt
+ *
+ */
 @Entity
 @Table(name="dunning")
 public class Dunning implements de.dhbw.humbuch.model.entity.Entity, Serializable {
@@ -112,6 +116,7 @@ public class Dunning implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 	}
 
 	public static class Builder {
+		private int id;
 		private Student student;
 		private Type type;
 		private Status status;
@@ -136,12 +141,18 @@ public class Dunning implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 			return this;
 		}
 		
+		public Builder id(int id) {
+			this.id = id;
+			return this;
+		}
+		
 		public Dunning build() {
 			return new Dunning(this);
 		}
 	}
 	
 	private Dunning(Builder builder) {
+		id = builder.id;
 		student = builder.student;
 		type = builder.type;
 		setStatus(Status.OPENED);
@@ -172,9 +183,9 @@ public class Dunning implements de.dhbw.humbuch.model.entity.Entity, Serializabl
 	}
 
 	public enum Status {
-		OPENED("zu senden"),
-		SENT("gesendet"),
-		CLOSED("erledigt");
+		OPENED("Offen"),
+		SENT("Versendet"),
+		CLOSED("Erledigt");
 
 		private String value;
 		

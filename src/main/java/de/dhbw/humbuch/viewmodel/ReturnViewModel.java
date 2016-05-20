@@ -1,9 +1,11 @@
 package de.dhbw.humbuch.viewmodel;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,8 +29,14 @@ import de.dhbw.humbuch.model.entity.SchoolYear.Term;
 import de.dhbw.humbuch.model.entity.Student;
 import de.dhbw.humbuch.model.entity.TeachingMaterial;
 
+/**
+ * Provides {@link State}s and methods for returning {@link BorrowedMaterial}s
+ * 
+ * @author David Vitt
+ *
+ */
 public class ReturnViewModel {
-	
+
 	public interface GenerateStudentReturnList extends ActionHandler {}
 	public interface SetBorrowedMaterialsReturned extends ActionHandler {}
 	public interface RefreshStudents extends ActionHandler {}
@@ -45,7 +53,6 @@ public class ReturnViewModel {
 	
 	private SchoolYear recentlyActiveSchoolYear;
 
-	
 	/**
 	 * Constructor
 	 * 
@@ -63,9 +70,13 @@ public class ReturnViewModel {
 	}
 	
 	@AfterVMBinding
+	public void initialiseStates() {
+		returnListStudent.set(new HashMap<Grade, Map<Student, List<BorrowedMaterial>>>());
+	}
+	
 	public void refresh() {
 		updateSchoolYear();
-		updateReturnList();
+		generateStudentReturnList();
 	}
 	
 	/**
@@ -75,34 +86,42 @@ public class ReturnViewModel {
 	 */
 	@HandlesAction(GenerateStudentReturnList.class)
 	public void generateStudentReturnList() {
-		Map<Grade, Map<Student, List<BorrowedMaterial>>> toReturn = new TreeMap<Grade, Map<Student,List<BorrowedMaterial>>>();
-		
-		for(Grade grade : daoGrade.findAll()) {
-			Map<Student, List<BorrowedMaterial>> studentWithUnreturnedBorrowedMaterials = new TreeMap<Student, List<BorrowedMaterial>>();
-			
-			for(Student student : grade.getStudents()) {
-				List<BorrowedMaterial> unreturnedBorrowedMaterials = new ArrayList<BorrowedMaterial>();
-				for (BorrowedMaterial borrowedMaterial : student.getReceivedBorrowedMaterials()) {
-					boolean isAfterCurrentTerm = recentlyActiveSchoolYear.getEndOf(recentlyActiveSchoolYear.getRecentlyActiveTerm()).before(new Date());
-//					boolean notNeededNextTerm = borrowedMaterial.isReceived() && borrowedMaterial.getReturnDate() == null && !isNeededNextTerm(borrowedMaterial);
+		Date today = new Date();
+		Term recentlyActiveTerm = recentlyActiveSchoolYear.getRecentlyActiveTerm();
+		boolean isAfterCurrentTerm = recentlyActiveSchoolYear.getEndOf(recentlyActiveTerm).before(today);
+
+		Map<Grade, Map<Student, List<BorrowedMaterial>>> toReturn = new TreeMap<>();
+		for(Grade gradeEntity : daoGrade.findAll()) {
+			Map<Student, List<BorrowedMaterial>> studentWithUnreturnedBorrowedMaterials = new TreeMap<>();
+
+			for(Student student : gradeEntity.getStudents()) {
+				int studentsGrade = student.getGrade().getGrade();
+				List<BorrowedMaterial> unreturnedBorrowedMaterials = new ArrayList<>();
+				for(BorrowedMaterial borrowedMaterial : student.getReceivedBorrowedMaterials()) {
+					TeachingMaterial teachingMaterial = borrowedMaterial.getTeachingMaterial();
+					Date borrowUntilDate = borrowedMaterial.getBorrowUntil();
+
 					boolean notNeededNextTerm = borrowedMaterial.getReturnDate() == null && !isNeededNextTerm(borrowedMaterial);
-					boolean borrowUntilExceeded = borrowedMaterial.getBorrowUntil() == null ? false : borrowedMaterial.getBorrowUntil().before(new Date());
-					boolean isManualLended = borrowedMaterial.getBorrowUntil() == null ? false : true;
-					if(!isManualLended && isAfterCurrentTerm && notNeededNextTerm) {
+					boolean borrowUntilExceeded = borrowUntilDate == null ? false : borrowUntilDate.before(today);
+					boolean isManualLended = borrowUntilDate == null ? false : true;
+					boolean toTermEqualsRecentlyActiceTerm = teachingMaterial.getToGrade() == studentsGrade	
+							&& teachingMaterial.getToTerm() == recentlyActiveTerm;
+
+					if(!isManualLended	&& notNeededNextTerm && (toTermEqualsRecentlyActiceTerm ? isAfterCurrentTerm : true)) {
 						unreturnedBorrowedMaterials.add(borrowedMaterial);
-					} else if (borrowedMaterial.getReturnDate() == null && borrowUntilExceeded) {
-						unreturnedBorrowedMaterials.add(borrowedMaterial);						
+					} else if (!borrowedMaterial.isReturned() && borrowUntilExceeded) {
+						unreturnedBorrowedMaterials.add(borrowedMaterial);
 					}
 				}
-				
+
 				if(!unreturnedBorrowedMaterials.isEmpty()) {
 					Collections.sort(unreturnedBorrowedMaterials);
-					studentWithUnreturnedBorrowedMaterials.put(student, unreturnedBorrowedMaterials);
+					studentWithUnreturnedBorrowedMaterials.put(student,	unreturnedBorrowedMaterials);
 				}
 			}
-			
+
 			if(!studentWithUnreturnedBorrowedMaterials.isEmpty()) {
-				toReturn.put(grade, studentWithUnreturnedBorrowedMaterials);
+				toReturn.put(gradeEntity, studentWithUnreturnedBorrowedMaterials);
 			}
 		}
 
@@ -116,12 +135,13 @@ public class ReturnViewModel {
 	 */
 	@HandlesAction(SetBorrowedMaterialsReturned.class)
 	public void setBorrowedMaterialsReturned(Collection<BorrowedMaterial> borrowedMaterials) {
+		Date today = new Date();
 		for (BorrowedMaterial borrowedMaterial : borrowedMaterials) {
-			borrowedMaterial.setReturnDate(new Date());
-			daoBorrowedMaterial.update(borrowedMaterial);
+			borrowedMaterial.setReturnDate(today);
 		}
 		
-		updateReturnList();
+		daoBorrowedMaterial.update(borrowedMaterials);
+		generateStudentReturnList();
 	}
 	
 	@HandlesAction(RefreshStudents.class)
@@ -149,10 +169,6 @@ public class ReturnViewModel {
 		return (toGrade > currentGrade || (toGrade == currentGrade && (toTerm.compareTo(currentTerm) > 0)));
 	}
 
-	private void updateReturnList() {
-		generateStudentReturnList();
-	}
-	
 	/**
 	 * Updates the recently actice {@link SchoolYear}
 	 */
@@ -160,5 +176,25 @@ public class ReturnViewModel {
 		recentlyActiveSchoolYear = daoSchoolYear.findSingleWithCriteria(
 				Order.desc("toDate"),
 				Restrictions.le("fromDate", new Date()));
+		if(recentlyActiveSchoolYear == null) {
+			recentlyActiveSchoolYear = new SchoolYear.Builder(
+					"now", getDate(Calendar.AUGUST, 1), getDate(Calendar.JUNE, 31))
+			.endFirstTerm(getDate(Calendar.JANUARY, 31))
+			.beginSecondTerm(getDate(Calendar.FEBRUARY, 1))
+			.build();
+		}
+	}
+	
+	/**
+	 * Returns {@link Date} object with the current year and the given month and day.
+	 * 
+	 * @param month
+	 * @param day
+	 * @return {@link Date} object with given information
+	 */
+	private Date getDate(int month, int day) {
+		Calendar  calendar = Calendar.getInstance();
+		calendar.set(calendar.get(Calendar.YEAR), month, day);
+		return calendar.getTime();
 	}
 }
